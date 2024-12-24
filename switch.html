@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Light lightSwitch Control</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+      }
+
+      .lightSwitch {
+        position: relative;
+        width: 150px;
+        height: 250px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .lightSwitch-toggle {
+        position: absolute;
+        width: 140px;
+        height: 120px;
+        background: #fff;
+        border-radius: 8px;
+        top: 120px;
+        left: 5px;
+        transition: top 0.3s;
+      }
+
+      .lightSwitch.on .lightSwitch-toggle {
+        top: 10px;
+      }
+
+      .status {
+        text-align: center;
+        margin-top: 20px;
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="lightSwitch" onclick="togglelightSwitch()">
+        <div class="lightSwitch-toggle"></div>
+      </div>
+      <div class="status" id="status">OFF</div>
+    </div>
+
+    <script>
+      let isOn = false;
+      const lightSwitch = document.querySelector('.lightSwitch');
+      const status = document.getElementById('status');
+
+      async function togglelightSwitch() {
+        isOn = !isOn;
+        lightSwitch.classList.toggle('on');
+        status.textContent = isOn ? 'ON' : 'OFF';
+
+        try {
+          const response = await fetch(isOn ? '/on' : '/off', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
+
+      async function updateSwitchState() {
+        try {
+          const response = await fetch('/status');
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const state = await response.text();
+          isOn = state === 'on';
+          lightSwitch.classList.toggle('on', isOn);
+          status.textContent = isOn ? 'ON' : 'OFF';
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
+
+      // Call when page loads
+      updateSwitchState();
+
+      // Optional: Poll every few seconds to keep UI in sync
+      setInterval(updateSwitchState, 3000);
+    </script>
+  </body>
+</html>

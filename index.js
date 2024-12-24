@@ -1,6 +1,7 @@
 import WebSocketClient from 'dlink_websocketclient';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
+import { readFileSync } from 'fs';
 
 const client = new WebSocketClient({
   ip: process.env.IP,
@@ -8,6 +9,10 @@ const client = new WebSocketClient({
 });
 
 const app = new Hono();
+app.get('/switch', async (c) => {
+  const file = readFileSync('./switch.html', 'utf8');
+  return c.html(file);
+})
 app.get('/status', async (c) => {
     const status = await client.state();
     return c.text(status ? 'on' : 'off');
